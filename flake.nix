@@ -18,6 +18,7 @@
           air
           gotools
           golangci-lint
+          cobra-cli
         ];
       };
     }
