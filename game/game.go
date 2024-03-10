@@ -3,6 +3,8 @@ package game
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/karstenpedersen/wordle-cli/utils"
+	"golang.org/x/term"
 	"os"
 	"strings"
 	"unicode"
@@ -101,39 +103,69 @@ func (m model) View() string {
 	}
 }
 
-func (m model) GameView() string {
-	s := ""
+func ScreenView(s string) string {
+	width, height, _ := term.GetSize(int(os.Stdout.Fd()))
+	return screenStyle.Width(width).Height(height).Render(s)
+}
 
-	// Board
+func (m model) GameView() string {
+	s := BoardView(m)
+	return ScreenView(s)
+}
+
+func BoardView(m model) string {
+	s := ""
 	for i := 0; i < m.maxGuesses; i++ {
-		if i < m.line {
-			for _, r := range m.guesses[i] {
-				s += fmt.Sprintf("[%c]", r)
-			}
-		} else {
-			for j := 0; j < len(m.word); j++ {
-				if i == m.line && j < len(m.input) {
-					s += fmt.Sprintf("[%c]", m.input[j])
-				} else {
-					s += "[ ]"
-				}
-			}
+		style := lineStyle
+		if i == m.line {
+			style = cursorLineStyle
 		}
-		s += "\n"
+		s += style.Render(Line(m, i))
+    s += "\n"
 	}
 
+	return boardStyle.Render(s)
+}
+
+func Line(m model, index int) string {
+	s := ""
+	if index < m.line {
+		for i, r := range m.guesses[index] {
+			style := incorrectTileStyle
+			if r == m.word[i] {
+				style = correctTileStyle
+			} else if utils.Contains(m.word, r) {
+				style = presentTileStyle
+			}
+			s += style.Render(string(r))
+		}
+	} else if index == m.line {
+		for i := 0; i < len(m.word); i++ {
+			if i < len(m.input) {
+				s += tileStyle.Render(string(m.input[i]))
+			} else {
+				s += tileStyle.Render(" ")
+			}
+		}
+	} else {
+		for i := 0; i < len(m.word); i++ {
+			s += tileStyle.Render(" ")
+		}
+	}
 	return s
 }
 
 func (m model) EndView() string {
-	s := fmt.Sprintf("The word was: %s\n\n", string(m.word))
+	s := "the word was\n\n"
+	s += wordStyle.Foreground(whiteColor).Background(greenColor).Render(string(m.word))
+	s += "\n\n"
 
 	if m.guessed {
 		try := "try"
 		if m.line != 1 {
 			try = "tries"
 		}
-		s += fmt.Sprintf("You guessed the word in %d %s.", m.line, try)
+		s += fmt.Sprintf("\n\nYou guessed the word in %d %s.", m.line, try)
 	} else {
 		s += "You did not guess the word"
 	}
@@ -141,5 +173,5 @@ func (m model) EndView() string {
 	s += "\n\n"
 	s += "Play: space\n"
 	s += "Quit: ctrl+c"
-	return s
+	return ScreenView(s)
 }
