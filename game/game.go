@@ -1,33 +1,19 @@
 package game
 
 import (
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/karstenpedersen/wordle-cli/utils"
 	"golang.org/x/term"
 	"os"
-	"strings"
 	"unicode"
+  "fmt"
 )
 
 func Start(word string) {
-	if word == "" {
-		word = "hello"
-	}
-
 	p := tea.NewProgram(initialModel(word), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("An error occured: %v\n", err)
 		os.Exit(1)
-	}
-}
-
-func initialModel(word string) model {
-	maxGuesses := len(word)
-	return model{
-		state:      GameState,
-		word:       []rune(strings.ToUpper(word)),
-		maxGuesses: maxGuesses,
 	}
 }
 
@@ -51,17 +37,18 @@ func (m model) GameUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			if m.column == len(m.word) {
-				m.guessed = string(m.word) == string(m.input)
-				m.guesses = append(m.guesses, m.input)
-				m.input = []rune{}
-				m.line++
-				m.column = 0
+			if m.column != len(m.word) || !isWordValid(m.input) {
+				return m, nil
+			}
+			m.guessed = string(m.word) == string(m.input)
+			m.guesses = append(m.guesses, m.input)
+			m.input = []rune{}
+			m.line++
+			m.column = 0
 
-				if m.line == m.maxGuesses || m.guessed {
-					m.state = EndState
-					return m, tea.ClearScreen
-				}
+			if m.line == m.maxGuesses || m.guessed {
+				m.state = EndState
+				return m, tea.ClearScreen
 			}
 		case "backspace":
 			if m.column > 0 {
@@ -87,7 +74,7 @@ func (m model) EndUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case " ", "enter":
-			return initialModel("word"), tea.ClearScreen
+			return initialModel(""), tea.ClearScreen
 		}
 	}
 
@@ -121,7 +108,7 @@ func BoardView(m model) string {
 			style = cursorLineStyle
 		}
 		s += style.Render(Line(m, i))
-    s += "\n"
+		s += "\n"
 	}
 
 	return boardStyle.Render(s)

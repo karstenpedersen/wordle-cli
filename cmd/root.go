@@ -12,8 +12,8 @@ var rootCmd = &cobra.Command{
 	Long:  "Play Wordle",
 	Example: `Make a friend guess a custom word:
   wordle --word cool`,
-  Version: "0.1.0",
-  Aliases: []string{"wordle"},
+	Version: "0.1.0",
+	Aliases: []string{"wordle"},
 	Run: func(cmd *cobra.Command, args []string) {
 		word, _ := cmd.Flags().GetString("word")
 		game.Start(word)
