@@ -8,7 +8,7 @@ import (
 )
 
 func readWordList() ([]string, error) {
-	content, err := os.ReadFile("wordlist")
+	content, err := os.ReadFile("./wordlists/wordle")
 	if err != nil {
 		return []string{}, err
 	}
