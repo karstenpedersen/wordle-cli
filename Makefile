@@ -3,6 +3,8 @@ BIN_NAME = wordle
 BIN_DIR = bin
 TARGET = $(BIN_DIR)/$(BIN_NAME)
 
+.PHONY: run
+
 all: test build
 
 build:
@@ -10,6 +12,9 @@ build:
 
 test:
 	$(GO) test -v ./...
+
+run: test build
+	./$(TARGET)
 
 clean:
 	$(GO) clean
