@@ -1,8 +1,8 @@
 package game
 
 import (
-  "strings"
-  "os"
+	"math/rand"
+	"strings"
 )
 
 type State int
@@ -15,6 +15,7 @@ const (
 type model struct {
 	state      State
 	word       []rune
+	wordlist   []string
 	guesses    [][]rune
 	input      []rune
 	maxGuesses int
@@ -23,20 +24,21 @@ type model struct {
 	guessed    bool
 }
 
-func initialModel(word string) model {
-	if word == "" {
-		randomWord, err := getRandomWord()
-		if err != nil {
-			os.Exit(1)
-		}
-		word = randomWord
+func processWord(word string, wordlist []string) string {
+	word = strings.TrimSpace(word)
+	if word == "" && len(wordlist) > 0 {
+		randomLineIndex := rand.Intn(len(wordlist))
+		word = wordlist[randomLineIndex]
 	}
+	return word
+}
 
+func initialModel(word string, wordlist []string) model {
 	maxGuesses := len(word)
 	return model{
 		state:      GameState,
 		word:       []rune(strings.ToUpper(word)),
 		maxGuesses: maxGuesses,
+		wordlist:   wordlist,
 	}
 }
-

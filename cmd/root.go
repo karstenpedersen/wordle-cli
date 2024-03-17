@@ -16,7 +16,8 @@ var rootCmd = &cobra.Command{
 	Aliases: []string{"wordle"},
 	Run: func(cmd *cobra.Command, args []string) {
 		word, _ := cmd.Flags().GetString("word")
-		game.Start(word)
+    wordlistPath, _ := cmd.Flags().GetString("wordlist")
+		game.Start(word, wordlistPath)
 	},
 }
 
@@ -29,4 +30,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringP("word", "w", "", "provide a word to guess")
+	rootCmd.Flags().StringP("wordlist", "W", "./wordlists/wordle", "provide a custom wordlist")
 }

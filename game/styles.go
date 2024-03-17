@@ -9,6 +9,7 @@ var yellowColor = lipgloss.Color("#c9b458")
 var backgroundColor = lipgloss.AdaptiveColor{Light: "#FAFAFA", Dark: "#121213"}
 
 var tileStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(whiteColor)).Background(grayColor)
+var spaceTileStyle = lipgloss.NewStyle().Background(backgroundColor)
 var correctTileStyle = lipgloss.NewStyle().Background(greenColor).Inherit(tileStyle)
 var presentTileStyle = lipgloss.NewStyle().Background(yellowColor).Inherit(tileStyle)
 var incorrectTileStyle = lipgloss.NewStyle().Inherit(tileStyle)

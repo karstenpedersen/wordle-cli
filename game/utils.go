@@ -7,8 +7,11 @@ import (
 	"strings"
 )
 
-func readWordList() ([]string, error) {
-	content, err := os.ReadFile("./wordlists/wordle")
+func readWordList(wordlistPath string) ([]string, error) {
+  if wordlistPath == "" {
+    return []string{}, nil
+  }
+	content, err := os.ReadFile(wordlistPath)
 	if err != nil {
 		return []string{}, err
 	}
@@ -16,8 +19,8 @@ func readWordList() ([]string, error) {
 	return strings.Split(string(content), "\n"), nil
 }
 
-func getRandomWord() (string, error) {
-	lines, err := readWordList()
+func getRandomWord(wordlistPath string) (string, error) {
+	lines, err := readWordList(wordlistPath)
 	if err != nil {
 		return "", err
 	}
@@ -27,10 +30,6 @@ func getRandomWord() (string, error) {
 	return word, nil
 }
 
-func isWordValid(word []rune) bool {
-	words, err := readWordList()
-	if err != nil {
-		return false
-	}
-	return utils.Contains(words, strings.ToLower(string(word)))
+func isWordValid(word []rune, wordlist []string) bool {
+	return utils.Contains(wordlist, strings.ToLower(string(word))) || len(wordlist) == 0
 }

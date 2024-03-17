@@ -1,16 +1,22 @@
 package game
 
 import (
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/karstenpedersen/wordle-cli/utils"
 	"golang.org/x/term"
 	"os"
 	"unicode"
-  "fmt"
 )
 
-func Start(word string) {
-	p := tea.NewProgram(initialModel(word), tea.WithAltScreen())
+func Start(word string, wordlistPath string) {
+	wordlist, err := readWordList(wordlistPath)
+	if err != nil {
+		os.Exit(1)
+	}
+	word = processWord(word, wordlist)
+
+	p := tea.NewProgram(initialModel(word, wordlist), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("An error occured: %v\n", err)
 		os.Exit(1)
@@ -37,7 +43,7 @@ func (m model) GameUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			if m.column != len(m.word) || !isWordValid(m.input) {
+			if m.column != len(m.word) || !isWordValid(m.input, m.wordlist) {
 				return m, nil
 			}
 			m.guessed = string(m.word) == string(m.input)
@@ -74,7 +80,7 @@ func (m model) EndUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case " ", "enter":
-			return initialModel(""), tea.ClearScreen
+			return initialModel("", m.wordlist), tea.ClearScreen
 		}
 	}
 
@@ -119,7 +125,9 @@ func Line(m model, index int) string {
 	if index < m.line {
 		for i, r := range m.guesses[index] {
 			style := incorrectTileStyle
-			if r == m.word[i] {
+			if r == ' ' {
+				style = spaceTileStyle
+			} else if r == m.word[i] {
 				style = correctTileStyle
 			} else if utils.Contains(m.word, r) {
 				style = presentTileStyle
@@ -128,7 +136,9 @@ func Line(m model, index int) string {
 		}
 	} else if index == m.line {
 		for i := 0; i < len(m.word); i++ {
-			if i < len(m.input) {
+			if m.word[i] == ' ' {
+				s += spaceTileStyle.Render(" ")
+			} else if i < len(m.input) {
 				s += tileStyle.Render(string(m.input[i]))
 			} else {
 				s += tileStyle.Render(" ")
@@ -136,7 +146,11 @@ func Line(m model, index int) string {
 		}
 	} else {
 		for i := 0; i < len(m.word); i++ {
-			s += tileStyle.Render(" ")
+			if m.word[i] == ' ' {
+				s += spaceTileStyle.Render(" ")
+			} else {
+				s += tileStyle.Render(" ")
+			}
 		}
 	}
 	return s
